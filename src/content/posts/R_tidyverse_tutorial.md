@@ -1,3 +1,12 @@
+---
+title: R语言tidyverse数据处理教程
+published: 2025-12-30
+description: tidyverse数据处理包的完整教程，涵盖数据导入、整理、操作和可视化
+tags: [R语言, tidyverse, 数据处理]
+category: 教程
+draft: false
+---
+
 ## 前言
 
 > [!note] 
