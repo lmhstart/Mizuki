@@ -1,7 +1,16 @@
+---
+title: 霍恩博尔加斯舍恩湖鹤群观测数据分析报告 (1994–2024)
+published: 2026-04-15
+description: 对瑞典霍恩博尔加斯约恩湖30年鹤群观测数据的R语言分析，包含数量变化趋势、最佳观赏时间和天气影响三个维度。
+tags: [R, 数据分析, 生态, 鹤群观测]
+category: 数据分析
+author: lawiet
+sourceLink: https://www.hornborga.com/naturen/transtatistik/
+---
+
 # 霍恩博尔加斯舍恩湖鹤群观测数据分析报告 (1994–2024)
-### 该数据源自于`https://www.hornborga.com/naturen/transtatistik/`
-### 由Contributor `Carl Borstell`提供。
-### 作者：lawiet
+
+该数据源自于 `https://www.hornborga.com/naturen/transtatistik/`，由 Contributor `Carl Borstell` 提供。
 
 >[!note]
 >背景介绍
