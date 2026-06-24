@@ -1,94 +1,85 @@
 @echo off
-chcp 65001 >nul
 setlocal enabledelayedexpansion
 
 :: ============================================================
-:: Mizuki 博客一键发布工具 (Windows 版)
-:: 双击运行，按提示操作即可
+:: Mizuki Blog Quick Publish Tool (Windows)
+:: Double-click to run, follow the prompts
 :: ============================================================
 
-title Mizuki 博客一键发布
+title Mizuki - Quick Publish
 
 echo.
-echo  ╔══════════════════════════════════════════════╗
-echo  ║     Mizuki 博客一键发布工具 (Windows版)       ║
-echo  ╚══════════════════════════════════════════════╝
+echo ================================================
+echo    Mizuki Blog - One-Click Publish
+echo ================================================
 echo.
 
-:: ── 获取项目目录 ────────────────────────────────────────
+REM -- Get project directory --
 set "PROJECT_DIR=%~dp0.."
 cd /d "%PROJECT_DIR%"
 
-:: ── 第1步：拖入/输入文件路径 ──────────────────────────────
-echo  [步骤 1/4] 请输入你的 Markdown 文件路径
-echo  ----------------------------------------
-echo  提示：可以直接把 .md 文件拖到这个窗口里！
+REM -- Step 1: Input file path --
+echo [Step 1/4] Enter your markdown file path
+echo   Tip: You can drag the .md file directly into this window!
 echo.
-set /p INPUT_FILE="  文件路径: "
+set /p INPUT_FILE="  File path: "
 
-:: 去掉路径两端的引号
+REM Remove quotes
 set INPUT_FILE=%INPUT_FILE:"=%
 
 if not exist "%INPUT_FILE%" (
     echo.
-    echo  [错误] 文件不存在: %INPUT_FILE%
+    echo [ERROR] File not found: %INPUT_FILE%
     pause
     exit /b 1
 )
 
-:: ── 第2步：输入文章信息 ──────────────────────────────────
+REM -- Step 2: Input article info --
 echo.
-echo  [步骤 2/4] 输入文章信息
-echo  ----------------------------------------
-set /p TITLE="  文章标题: "
-set /p DESC="  文章摘要: "
-set /p TAGS="  标签 (用逗号分隔): "
-set /p CATEGORY="  分类: "
+echo [Step 2/4] Enter article information
+echo ----------------------------------------
+set /p TITLE="  Title: "
+set /p DESC="  Description: "
+set /p TAGS="  Tags (comma separated): "
+set /p CATEGORY="  Category: "
 
-:: ── 第3步：确认 ──────────────────────────────────────────
+REM -- Step 3: Confirm --
 echo.
-echo  [步骤 3/4] 确认信息
-echo  ----------------------------------------
-echo   源文件:   %INPUT_FILE%
-echo   标题:     %TITLE%
-echo   摘要:     %DESC%
-echo   标签:     %TAGS%
-echo   分类:     %CATEGORY%
+echo [Step 3/4] Confirm
+echo ----------------------------------------
+echo   Source file: %INPUT_FILE%
+echo   Title:       %TITLE%
+echo   Description: %DESC%
+echo   Tags:        %TAGS%
+echo   Category:    %CATEGORY%
 echo.
-set /p CONFIRM="  确认发布? [Y/n]: "
+set /p CONFIRM="  Confirm publish? [Y/n]: "
 if /i "%CONFIRM%"=="n" exit /b 0
 
-:: ── 第4步：生成文件 + 提交 ──────────────────────────────
+REM -- Step 4: Generate file + commit + push --
 echo.
-echo  [步骤 4/4] 生成文章并提交到 GitHub...
-echo  ----------------------------------------
+echo [Step 4/4] Generating and publishing...
+echo ----------------------------------------
 
-:: 生成安全的英文文件名
+REM Generate safe English filename
 for %%F in ("%INPUT_FILE%") do set "BASENAME=%%~nF"
-set "BASENAME=%BASENAME: =-%"
-set "SAFE_NAME=%BASENAME%.md"
+REM Replace spaces with hyphens, remove Chinese chars etc
+set "SAFE_NAME=%BASENAME: =-%"
+REM Generate timestamp-based safe name
+for /f "tokens=2 delims==" %%I in ('wmic os get localdatetime /value') do set "DT=%%I"
+set "TS=%DT:~0,4%%DT:~4,2%%DT:~6,2%-%DT:~8,2%%DT:~10,2%%DT:~12,2%"
+set "OUTPUT_FILE=src\content\posts\post-%TS%.md"
 
-:: 获取当前日期
-for /f "tokens=2 delims==" %%I in ('wmic os get localdatetime /value') do set "DATETIME=%%I"
-set "TODAY=%DATETIME:~0,4%-%DATETIME:~4,2%-%DATETIME:~6,2%"
+REM Get today's date
+set "TODAY=%DT:~0,4%-%DT:~4,2%-%DT:~6,2%"
 
-:: 生成 frontmatter YAML 标签列表
-set "TAG_YAML="
-if not "%TAGS%"=="" (
-    for %%t in (%TAGS%) do (
-        set "TAG_YAML=!TAG_YAML!  - %%~t\n"
-    )
-)
-
-:: 写入文件
-set "OUTPUT_FILE=src\content\posts\%SAFE_NAME%"
+REM Generate YAML frontmatter
 (
     echo ---
     echo title: %TITLE%
     echo published: %TODAY%
     echo description: %DESC%
-    if not "%TAGS%"=="" echo tags:
-    if not "%TAG_YAML%"=="" echo !TAG_YAML!
+    if not "%TAGS%"=="" echo tags: [%TAGS%]
     if not "%CATEGORY%"=="" echo category: %CATEGORY%
     echo draft: false
     echo ---
@@ -96,29 +87,29 @@ set "OUTPUT_FILE=src\content\posts\%SAFE_NAME%"
     type "%INPUT_FILE%"
 ) > "%OUTPUT_FILE%"
 
-echo   √ 文章已生成: %OUTPUT_FILE%
+echo   [OK] Article created: %OUTPUT_FILE%
 
-:: Git 提交
+REM Git add and commit
 git add "%OUTPUT_FILE%"
 git commit -m "feat: add %TITLE%"
+echo   [OK] Committed
 
-echo   √ 已提交到本地仓库
-
-:: Git 推送
+REM Git push
 echo.
-echo  正在推送到 GitHub...
+echo   Pushing to GitHub...
 git push origin master
 
 if errorlevel 1 (
     echo.
-    echo   × 推送失败！请检查:
-    echo     1. 是否开启了梯子/代理
-    echo     2. 网络连接是否正常
+    echo   [FAIL] Push failed. Please check:
+    echo      1. Is your VPN/proxy turned on?
+    echo      2. Is the network working?
     echo.
-    echo   可以稍后手动在 Git Bash 中执行: git push origin master
+    echo   You can retry manually: git push origin master
 ) else (
     echo.
-    echo   √ 发布成功！Vercel 将自动部署，稍后访问博客即可看到。
+    echo   [OK] Published successfully!
+    echo   Vercel will auto-deploy. Check your blog shortly.
 )
 
 echo.
